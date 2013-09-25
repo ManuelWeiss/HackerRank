@@ -1,4 +1,4 @@
-object Solution {
+object BotSavesPrincess {
     type Pos = (Int, Int)
     case class Grid(grid: Array[String]) {
         val start = find("m")
@@ -16,52 +16,52 @@ object Solution {
         }
     }
     var grid : Grid = null
-    class Move {
-        def legal(p: Pos) = false
-        def move(p: Pos) = p
-        def prev(p: Pos) = p
+    abstract class Move {
+        def legal(p: Pos) : Boolean
+        def move(p: Pos) : Pos
+        def prev(p: Pos) : Pos
     }
     type Path = List[Move]
     val beenThere = new collection.mutable.HashMap[Pos, Path]()
-    case class Up extends Move {
-        override def legal(p: Pos) =
+    case object Up extends Move {
+        def legal(p: Pos) =
             p match {
                 case (_, y) if (y > 0) => true
                 case _ => false
         }
-        override def move(p: Pos) = (p._1, p._2 - 1)
-        override def prev(p: Pos) = (p._1, p._2 + 1)
+        def move(p: Pos) = (p._1, p._2 - 1)
+        def prev(p: Pos) = (p._1, p._2 + 1)
     }
-    case class Down extends Move {
-        override def legal(p: Pos) =
+    case object Down extends Move {
+        def legal(p: Pos) =
             p match {
                 case (_, y) if (y < grid.size - 1) => true
                 case _ => false
             }
-        override def move(p: Pos) = (p._1, p._2 + 1)
-        override def prev(p: Pos) = (p._1, p._2 - 1)
+        def move(p: Pos) = (p._1, p._2 + 1)
+        def prev(p: Pos) = (p._1, p._2 - 1)
     }
-    case class Left extends Move {
-        override def legal(p: Pos) =
+    case object Left extends Move {
+        def legal(p: Pos) =
             p match {
                 case (x, _) if (x > 0) => true
                 case _ => false
             }
-        override def move(p: Pos) = (p._1 - 1, p._2)
-        override def prev(p: Pos) = (p._1 + 1, p._2)
+        def move(p: Pos) = (p._1 - 1, p._2)
+        def prev(p: Pos) = (p._1 + 1, p._2)
     }
-    case class Right extends Move {
-        override def legal(p: Pos) =
+    case object Right extends Move {
+        def legal(p: Pos) =
             p match {
                 case (x, _) if (x < grid.size - 1) => true
                 case _ => false
             }
-        override def move(p: Pos) = (p._1 + 1, p._2)
-        override def prev(p: Pos) = (p._1 - 1, p._2)
+        def move(p: Pos) = (p._1 + 1, p._2)
+        def prev(p: Pos) = (p._1 - 1, p._2)
     }
     var frontier = collection.mutable.Queue[Pos]()
 
-    def legalMoves(pos: Pos) = List(Right(), Left(), Up(), Down()).filter(_.legal(pos))
+    def legalMoves(pos: Pos) = List(Right, Left, Up, Down).filter(_.legal(pos))
     def nextPositions(pos: Pos) = legalMoves(pos) zip legalMoves(pos).map(_.move(pos))
     def newPositions(pos: Pos) = nextPositions(pos).filter(x => !beenThere.contains(x._2))
     def makeMove(move : Move, pos: Pos) = {
@@ -73,8 +73,9 @@ object Solution {
         while (!frontier.isEmpty) {
             println("current state:\n" + grid)
             val pos = frontier.dequeue
-            if (pos == grid.princess) // found it, return position
+            if (pos == grid.princess) { // found it, return position
                 return Some(pos)
+            }
             else {
                 newPositions(pos) foreach {case (m, p) => makeMove(m, p)}
             }
